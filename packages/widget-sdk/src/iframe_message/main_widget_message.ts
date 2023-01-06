@@ -85,21 +85,21 @@ class MainWidgetMessageBase {
       messageWindow && messageWindow.postMessage({
         response: data,
         type
-      }, origin);
+      }, origin!);
       return;
     }
     Object.keys(this.contentWindows).forEach(key => {
       const { window: messageWindow, origin } = this.contentWindows[key] || {};
-      messageWindow.postMessage({
+      messageWindow!.postMessage({
         response: data,
         type
-      }, origin);
+      }, origin!);
     });
   }
 
   on(props: { widgetId: string, type: WidgetMessageType, callback: (data: IResponse) => void }) {
     const { widgetId, type, callback } = props;
-    const widgetEventMap = this.listenEvents[widgetId];
+    const widgetEventMap = this.listenEvents[widgetId]!;
     if (widgetEventMap.has(type)) {
       widgetEventMap.set(type, callback);
     }
@@ -148,7 +148,7 @@ class MainWidgetMessage extends MainWidgetMessageBase {
     return [...new Set(viewIds)];
   }
 
-  removeWindow(widgetId: string) {
+  override removeWindow(widgetId: string) {
     super.removeWindow(widgetId);
     delete this.widgets?.[widgetId];
   }
@@ -214,7 +214,7 @@ class MainWidgetMessage extends MainWidgetMessageBase {
   refreshSnapshot(datasheetId: string) {
     if (datasheetId) {
       Object.keys(this.widgets).forEach(widgetId => {
-        const widget = this.widgets[widgetId];
+        const widget = this.widgets[widgetId]!;
         if (widget.listenDatasheetMap[datasheetId]) {
           this.emit(WidgetMessageType.REFRESH_SNAPSHOT, { success: true, data: datasheetId }, widgetId);
         }
@@ -328,7 +328,7 @@ class MainWidgetMessage extends MainWidgetMessageBase {
   loadOtherDatasheetInit(datasheetId: string, datasheetMap: IDatasheetMap) {
     if (datasheetId) {
       Object.keys(this.widgets).forEach(widgetId => {
-        const widget = this.widgets[widgetId];
+        const widget = this.widgets[widgetId]!;
         if (widget.listenDatasheetMap[datasheetId]) {
           this.emit(WidgetMessageType.LOAD_OTHER_DATASHEET_INIT, { success: true, data: datasheetMap }, widgetId);
         }
@@ -342,7 +342,7 @@ class MainWidgetMessage extends MainWidgetMessageBase {
   datasheetSimpleUpdate(datasheetIds: string[], datasheetSimple: {[datasheetId: string]: IDatasheetMainSimple}) {
     if (datasheetIds.length) {
       Object.keys(this.widgets).forEach(widgetId => {
-        const widget = this.widgets[widgetId];
+        const widget = this.widgets[widgetId]!;
         if (datasheetIds.some(datasheetId => widget.listenDatasheetMap[datasheetId])) {
           this.emit(WidgetMessageType.LOAD_OTHER_DATASHEET_UPDATE, { success: true, data: datasheetSimple }, widgetId);
         }
@@ -383,7 +383,7 @@ class MainWidgetMessage extends MainWidgetMessageBase {
    */
   syncCalcCache(datasheetId: string, viewId: string, cache: IViewRow[]) {
     Object.keys(this.widgets).forEach(widgetId => {
-      const widget = this.widgets[widgetId];
+      const widget = this.widgets[widgetId]!;
       if (widget.listenDatasheetMap[datasheetId]?.subscribeViewIds?.has(viewId)) {
         this.emit(WidgetMessageType.CALC_CACHE, { success: true, data: { datasheetId, viewId, cache }}, widgetId);
       }
@@ -397,7 +397,7 @@ class MainWidgetMessage extends MainWidgetMessageBase {
     this.on({ type: WidgetMessageType.CALC_CACHE, callback: (res: IResponse<{ datasheetId: string, viewId: string }>) => {
       if (res.success && res.data) {
         const { datasheetId, viewId } = res.data;
-        const datasheetListen = this.widgets[widgetId].listenDatasheetMap[datasheetId] || {};
+        const datasheetListen = this.widgets[widgetId]!.listenDatasheetMap[datasheetId] || {};
         if (datasheetListen.subscribeViewIds) {
           datasheetListen.subscribeViewIds.add(viewId);
         } else {
@@ -477,7 +477,7 @@ class MainWidgetMessage extends MainWidgetMessageBase {
    */
   calcExpire(datasheetId: string, viewId: string) {
     Object.keys(this.widgets).forEach(widgetId => {
-      const widget = this.widgets[widgetId];
+      const widget = this.widgets[widgetId]!;
       const subscribeViewIds = widget.listenDatasheetMap[datasheetId]?.subscribeViewIds;
       if (widget.listenDatasheetMap[datasheetId]?.subscribeViewIds?.has(viewId)) {
         subscribeViewIds?.delete(viewId);
